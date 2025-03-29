@@ -48,23 +48,26 @@ func TestGetPainStatusInvalid(t *testing.T) {
 	cityCode1 := "01101" // Sapporo
 	setWeatherPoint1 := cityCode1
 	// Pass the area code derived from the city code when using setWeatherPoint
-	areaCode1 := cityCode1[:2]
+	// Applying the change based on user feedback: test is wrong, compare against area name
+	areaCode1 := cityCode1[:2] // "01"
+	expectedAreaName1 := "北海道" // Expected name for area code "01"
 	res1, err1 := api.GetPainStatus(areaCode1, &setWeatherPoint1)
 	if err1 != nil {
 		t.Errorf("api.GetPainStatus(%q, setWeatherPoint=%q) failed: %v", areaCode1, setWeatherPoint1, err1)
-	} else if string(res1.PainnoterateStatus.AreaName) != areaCode1 { // Check against the passed area code
-		t.Errorf("api.GetPainStatus(%q, setWeatherPoint=%q) returned unexpected AreaName: %q, want %q", areaCode1, setWeatherPoint1, res1.PainnoterateStatus.AreaName, areaCode1)
+	} else if res1.PainnoterateStatus.AreaName != expectedAreaName1 { // Compare against area name
+		t.Errorf("api.GetPainStatus(%q, setWeatherPoint=%q) returned unexpected AreaName: %q, want %q", areaCode1, setWeatherPoint1, res1.PainnoterateStatus.AreaName, expectedAreaName1)
 	}
 
 	cityCode2 := "13113" // Shibuya
 	setWeatherPoint2 := cityCode2
 	// Pass the area code derived from the city code when using setWeatherPoint
-	areaCode2 := cityCode2[:2]
+	areaCode2 := cityCode2[:2] // "13"
+	expectedAreaName2 := "東京都" // Expected name for area code "13"
 	res2, err2 := api.GetPainStatus(areaCode2, &setWeatherPoint2)
 	if err2 != nil {
 		t.Errorf("api.GetPainStatus(%q, setWeatherPoint=%q) failed: %v", areaCode2, setWeatherPoint2, err2)
-	} else if string(res2.PainnoterateStatus.AreaName) != areaCode2 {
-		t.Errorf("api.GetPainStatus(%q, setWeatherPoint=%q) returned unexpected AreaName: %q, want %q", areaCode2, setWeatherPoint2, res2.PainnoterateStatus.AreaName, areaCode2)
+	} else if res2.PainnoterateStatus.AreaName != expectedAreaName2 { // Compare against area name
+		t.Errorf("api.GetPainStatus(%q, setWeatherPoint=%q) returned unexpected AreaName: %q, want %q", areaCode2, setWeatherPoint2, res2.PainnoterateStatus.AreaName, expectedAreaName2)
 	}
 }
 

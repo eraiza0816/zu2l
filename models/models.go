@@ -270,15 +270,22 @@ const (
 	SnowyAfterCloudy WeatherEnum = "416"
 )
 
+// Restoring original types as per user instruction (test is wrong, not model)
 type WeatherStatusByTime struct {
-	Time          string        `json:"time"` // Changed from int to string
+	Time          int           `json:"time"`
 	Weather       WeatherEnum   `json:"weather"`
 	Temp          *float64      `json:"temp"`
 	Pressure      float64       `json:"pressure"`
 	PressureLevel PressureLevelEnum `json:"pressure_level"`
 }
 
-// Validate method removed as Time is now a string and API is assumed to provide valid "0"-"23"
+// Restore Validate method for Time
+func (w *WeatherStatusByTime) Validate() error {
+	if w.Time < 0 || w.Time > 24 {
+		return fmt.Errorf("Time must be between 0 and 24")
+	}
+	return nil
+}
 
 type GetWeatherStatusResponse struct {
 	PlaceName      string              `json:"place_name"`

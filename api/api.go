@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"errors" // Added for errors.As
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
