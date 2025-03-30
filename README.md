@@ -1,48 +1,8 @@
 # zutool
 
-[![PyPI version](
-  <https://badge.fury.io/py/zutool.svg>
-  )](
-  <https://badge.fury.io/py/zutool>
-) [![Maintainability](
-  <https://qlty.sh/badges/ddb7a44f-c9b0-4164-a409-a3d06521b937/maintainability.svg>
-  )](
-  <https://qlty.sh/gh/eggplants/projects/zutool>
-  ) [![pre-commit.ci status](
-  <https://results.pre-commit.ci/badge/github/eggplants/zutool/master.svg>
-  )](
-  <https://results.pre-commit.ci/latest/github/eggplants/zutool/master>
-) [![Code Coverage](
-  <https://qlty.sh/badges/ddb7a44f-c9b0-4164-a409-a3d06521b937/test_coverage.svg>
-  )](
-  <https://qlty.sh/gh/eggplants/projects/zutool>
-) [![Test](
-  <https://github.com/eggplants/zutool/actions/workflows/test.yml/badge.svg>
-  )](
-  <https://github.com/eggplants/zutool/actions/workflows/test.yml>
-) [![Release](
-  <https://github.com/eggplants/zutool/actions/workflows/release.yml/badge.svg>
-  )](
-  <https://github.com/eggplants/zutool/actions/workflows/release.yml>
-)
-
-[![ghcr latest](
-  <https://ghcr-badge.egpl.dev/eggplants/zutool/latest_tag?trim=major&label=latest>
- ) ![ghcr size](
-  <https://ghcr-badge.egpl.dev/eggplants/zutool/size>
-)](
-  <https://github.com/eggplants/zutool/pkgs/container/zutool>
-)
+go build -o zutool ./cmd/zutool
 
 Unofficial zutool (頭痛ール: <https://zutool.jp/>) API Wrapper
-
-## Install
-
-```bash
-pipx install zutool
-# or,
-pip install zutool
-```
 
 ## As Library
 
