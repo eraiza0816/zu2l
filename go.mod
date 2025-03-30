@@ -1,6 +1,6 @@
 module zutool
 
-go 1.22.2
+go 1.23.7
 
 require (
 	github.com/olekukonko/tablewriter v0.0.5
