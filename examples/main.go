@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	github.com/eraiza0816/zu2l/api"
+	"github.com/eraiza0816/zu2l/api"
 )
 
 func main() {

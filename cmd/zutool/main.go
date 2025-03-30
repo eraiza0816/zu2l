@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/api" // Update import path
 	"github.com/eraiza0816/zu2l/internal/commands"
 	"github.com/eraiza0816/zu2l/internal/presenter"
 )

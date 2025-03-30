@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"strconv"
-	github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/api" // Update import path
 	"github.com/eraiza0816/zu2l/internal/models"
 	"github.com/eraiza0816/zu2l/internal/presenter"
 

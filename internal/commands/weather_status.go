@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"errors"
-	github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/api" // Update import path
 	"github.com/eraiza0816/zu2l/internal/presenter"
 
 	"github.com/spf13/cobra"

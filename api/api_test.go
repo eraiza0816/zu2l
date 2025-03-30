@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/api" // Update import path
 )
 
 // Helper function to create a new client for tests
