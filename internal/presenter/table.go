@@ -41,7 +41,7 @@ func (p *TablePresenter) newTable() *tablewriter.Table {
 	table.SetRowSeparator("")
 	table.SetHeaderLine(false)
 	table.SetBorder(false)
-	table.SetTablePadding("\t") // Use tabs to separate columns
+	table.SetTablePadding("\t")
 	table.SetNoWhiteSpace(true)
 	return table
 }
@@ -53,7 +53,7 @@ func (p *TablePresenter) PresentPainStatus(data models.GetPainStatusResponse) er
 	titleB := fmt.Sprintf("(集計時間: %s時-%s時台)", status.TimeStart, status.TimeEnd)
 
 	table := p.newTable()
-	table.SetHeader([]string{fmt.Sprintf("%s\n%s", titleA, titleB)}) // Use SetHeader for the main title
+	table.SetHeader([]string{fmt.Sprintf("%s\n%s", titleA, titleB)})
 
 	sicknessEmojis := []string{"😃", "😐", "😞", "🤯"}
 	sicknessLabels := []string{"普通", "少し痛い", "痛い", "かなり痛い"}
@@ -246,9 +246,10 @@ func (p *TablePresenter) PresentWeatherStatus(data models.GetWeatherStatusRespon
 	return nil
 }
 
-// PresentOtenkiASP displays the Otenki ASP weather information as a table.
+// PresentOtenkiASP displays the Otenki ASP weather information in the original multi-column format
+// with a manually printed header row based on the user's ideal format.
 func (p *TablePresenter) PresentOtenkiASP(data models.GetOtenkiASPResponse, targetDates []time.Time, cityName, cityCode string) error {
-	table := p.newTable()
+	table := p.newTable() // Keep table setup
 	table.SetCaption(true, fmt.Sprintf("<%s|%s>の天気情報", cityName, cityCode))
 
 	if len(data.Elements) == 0 {
@@ -256,83 +257,79 @@ func (p *TablePresenter) PresentOtenkiASP(data models.GetOtenkiASPResponse, targ
 		return nil
 	}
 
-	// Sort elements for consistent column order (optional, based on desired order)
-	// sort.Slice(data.Elements, func(i, j int) bool {
-	// 	// Define sorting logic if needed, e.g., by ContentID or Title
-	// 	return data.Elements[i].ContentID < data.Elements[j].ContentID
-	// })
+	// --- Data processing logic from the successful multi-column state ---
+	// Sort elements (optional, keep commented)
+	// sort.Slice(data.Elements, func(i, j int) bool { ... })
 
-	headers := []string{"日付"}
-	for _, element := range data.Elements {
-		// Clean up title for header
-		title := strings.Replace(element.Title, "(日別)", "", -1)
-		headers = append(headers, title)
-	}
-	table.SetHeader(headers)
-
-	// Sort targetDates to ensure chronological order in rows
+	// Sort targetDates
 	sort.Slice(targetDates, func(i, j int) bool {
 		return targetDates[i].Before(targetDates[j])
 	})
 
 	if len(targetDates) == 0 {
 		fmt.Fprintf(p.ensureWriter(), "表示対象の日付が指定されていません。\n")
-		// Optionally, default to showing all available dates if none are specified
-		// Or return an error/message as appropriate.
-		return nil // Or return an error
+		return nil
 	}
 
+	idealHeaderString := "日付\t天気\t降水確率\t最高気温\t最低気温\t最大風速\t最大風速時風向\t気圧予報レベル\t最小湿度"
+	fmt.Fprintln(p.ensureWriter(), idealHeaderString)
 
 	for _, targetDate := range targetDates {
-		row := []string{targetDate.Format("01/02")} // Format date as MM/DD
+		row := []string{targetDate.Format("01/02")} // First column is the date for the row
 
-		for _, element := range data.Elements {
+		for _, element := range data.Elements { // Loop through elements (these become the columns after the date)
 			value, ok := element.Records[targetDate]
-			if !ok {
-				row = append(row, "-") // Use "-" for missing data
-				continue
-			}
-
-			// Format value based on its type
-			switch v := value.(type) {
-			case string:
-				// Attempt to map weather codes to emojis if it's a weather element
-				if strings.Contains(element.ContentID, "day_tenki") {
-					weatherCodeInt, err := strconv.Atoi(v)
-					if err == nil {
-						simplifiedCode := (weatherCodeInt / 100) * 100
-						if emoji, okEmoji := models.WeatherEmojiMap[simplifiedCode]; okEmoji {
-							row = append(row, emoji) // Show emoji for weather
-							continue // Skip default string formatting
+			valueStr := "-" // Default value if missing
+			if ok {
+				// Formatting logic based on parser providing correct types (string or float64)
+				switch v := value.(type) {
+				case string:
+					// Attempt emoji mapping for weather code
+					if element.ContentID == "day_tenki" { // Check specific ContentID
+						weatherCodeInt, err := strconv.Atoi(v)
+						if err == nil {
+							simplifiedCode := (weatherCodeInt / 100) * 100
+							if emoji, okEmoji := models.WeatherEmojiMap[simplifiedCode]; okEmoji {
+								valueStr = emoji // Use emoji
+							} else {
+								valueStr = v // Use code if no emoji
+							}
+						} else {
+							valueStr = v // Use original string if not int code (e.g., weather text)
 						}
+					} else {
+						valueStr = v // Use string directly for other elements (dir, level)
 					}
+				case float64:
+					// Format floats (pop, temps, wind_v, humidity)
+					// Format pop, humidity, level, dir as integer if they have no decimal part
+					if element.ContentID == "day_pre" || element.ContentID == "low_humidity" || element.ContentID == "zutu_level_day" || element.ContentID == "day_wind_d" {
+						if v == float64(int(v)) {
+							valueStr = strconv.Itoa(int(v))
+						} else {
+							valueStr = fmt.Sprintf("%.1f", v) // Keep decimal if present
+						}
+					} else {
+						// Format temps, wind_v to one decimal place
+						valueStr = fmt.Sprintf("%.1f", v)
+					}
+				default:
+					// Fallback for unexpected types from parser
+					fmt.Fprintf(os.Stderr, "警告: ContentID '%s' の予期しない値の型: %T, 値: %v\n", element.ContentID, v, v)
+					valueStr = fmt.Sprintf("%v", v)
 				}
-				row = append(row, v) // Default string representation
-			case float64:
-				// Format floats nicely (e.g., temperature, pressure)
-				// Add units based on element type if possible/needed
-				unit := ""
-				if strings.Contains(element.ContentID, "temp") {
-					unit = "℃"
-				} else if strings.Contains(element.ContentID, "pre") {
-					unit = "hPa" // Assuming hPa for pressure
-				}
-				row = append(row, fmt.Sprintf("%.1f%s", v, unit))
-			case int: // Handle potential integer values
-				row = append(row, strconv.Itoa(v))
-			default:
-				// Fallback for other types
-				row = append(row, fmt.Sprintf("%v", v))
 			}
+			row = append(row, valueStr)
 		}
 		table.Append(row)
 	}
 
+	// Render the table (without its own header)
 	table.Render()
 	return nil
 }
 
-// Helper function min (already present in original main.go)
+// Helper function min (if not already present or imported)
 func min(a, b int) int {
 	if a < b {
 		return a
