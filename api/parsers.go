@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"zutool/internal/models"
+	"zutool/internal/models" // Keep internal import for models
 )
 
 // parseWeatherPointResponse parses the raw response body for the GetWeatherPoint endpoint.

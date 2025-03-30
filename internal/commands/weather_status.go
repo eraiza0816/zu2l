@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"errors"
-	"zutool/internal/api"
+	"zutool/api" // Update import path
 	"zutool/internal/presenter"
 
 	"github.com/spf13/cobra"

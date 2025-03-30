@@ -6,7 +6,7 @@ import (
 )
 
 type APIError struct {
-	StatusCode int 
+	StatusCode int
 	Body       string
 	Message    string
 	Err        error

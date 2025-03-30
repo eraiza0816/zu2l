@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"strconv"
-	"zutool/internal/api"
+	"zutool/api" // Update import path
 	"zutool/internal/models"
 	"zutool/internal/presenter"
 

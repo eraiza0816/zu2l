@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"zutool/internal/api"
+	"zutool/api" // Update import path
 )
 
 // Helper function to create a new client for tests

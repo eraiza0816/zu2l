@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"zutool/internal/api"
+	"zutool/api" // Update import path
 	"zutool/internal/commands"
 	"zutool/internal/presenter"
 )
