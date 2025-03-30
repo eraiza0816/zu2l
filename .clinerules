@@ -2,3 +2,5 @@
 docs/ddd_doc.md ファイルの手順に従って。
 clineは `go run` や `go build` は実行しない。
 ユーザが実行した結果をあなたに提供するので，それを見て，次のタスクを考えて実行して。
+
+ただし，ユーザから許可があった場合に限り， `go build -o zutool ./cmd/zutool` は実行してもよい。
