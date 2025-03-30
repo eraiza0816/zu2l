@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/eraiza0816/zu2l/internal/models" // Keep internal import for models
+	"github.com/eraiza0816/zu2l/internal/models"
 )
 
 const (

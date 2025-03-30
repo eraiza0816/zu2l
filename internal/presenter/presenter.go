@@ -2,7 +2,7 @@ package presenter
 
 import (
 	"time" // time.Time を使うためインポート
-	"zutool/internal/models"
+	"github.com/eraiza0816/zu2l/internal/models"
 )
 
 // Presenter defines the interface for displaying API results.

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"zutool/internal/models"
+	"github.com/eraiza0816/zu2l/internal/models"
 
 	"github.com/olekukonko/tablewriter"
 )

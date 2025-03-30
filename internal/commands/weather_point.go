@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 	"errors"
-	"zutool/api" // Update import path
-	"zutool/internal/presenter"
+	github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/internal/presenter"
 
 	"github.com/spf13/cobra"
 )

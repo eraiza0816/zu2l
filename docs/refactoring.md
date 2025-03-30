@@ -94,7 +94,7 @@
 
     import (
         "time" // time.Time を使うためインポート
-        "zutool/internal/models"
+        "github.com/eraiza0816/zu2l/internal/models"
     )
 
     type Presenter interface {

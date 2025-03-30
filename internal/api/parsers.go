@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"github.com/eraiza0816/zu2l/internal/models" // Keep internal import for models
+	"github.com/eraiza0816/zu2l/internal/models"
 )
 
 // parseWeatherPointResponse parses the raw response body for the GetWeatherPoint endpoint.

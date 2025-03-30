@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"zutool/api" // Update import path
-	"zutool/internal/commands"
-	"zutool/internal/presenter"
+	github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/internal/commands"
+	"github.com/eraiza0816/zu2l/internal/presenter"
 )
 
 // No global jsonFlag anymore
