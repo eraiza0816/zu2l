@@ -12,7 +12,6 @@ import (
 	"zutool/internal/models"
 )
 
-// Constants for API interaction (unexported)
 const (
 	defaultBaseURL         = "https://zutool.jp/api"
 	defaultOtenkiASPBaseURL = "https://ap.otenki.com/OtenkiASP/asp"
