@@ -54,7 +54,7 @@ const (
 	Aichi     AreaEnum = "23" // 愛知
 	Mie       AreaEnum = "24" // 三重
 	Shiga     AreaEnum = "25" // 滋賀
-	// Kyoto     AreaEnum = "26" // 京都 - API非対応？
+	Kyoto     AreaEnum = "26" // 京都
 	Osaka     AreaEnum = "27" // 大阪
 	Hyogo     AreaEnum = "28" // 兵庫
 	Nara      AreaEnum = "29" // 奈良

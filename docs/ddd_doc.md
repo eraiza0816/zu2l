@@ -21,11 +21,11 @@
     *   `GetOtenkiASPResponse` (`internal/models/types.go`): `Element` エンティティのリスト (`Elements`) を含む集約。`Status` や `DateTime` も属性として持つ。このレスポンス自体が集約ルート。 (関連する `Raw*` 構造体も `internal/models/types.go` に定義)
 
 *   **リポジトリ (Repositories)**: 集約の永続化や取得を担当するインターフェース。インフラストラクチャ層で実装される。
-    *   `Client` 構造体 (`internal/api/api.go`): 外部 API (zutool API, Otenki ASP API) との通信を担当。以下のメソッドが集約を取得するリポジトリの役割を果たす。
-        *   `GetPainStatus(areaCode string, setWeatherPoint *string) (models.GetPainStatusResponse, error)` (定義: `internal/api/api.go`)
-        *   `GetWeatherPoint(keyword string) (models.GetWeatherPointResponse, error)` (定義: `internal/api/api.go`)
-        *   `GetWeatherStatus(cityCode string) (models.GetWeatherStatusResponse, error)` (定義: `internal/api/api.go`)
-        *   `GetOtenkiASP(cityCode string) (models.GetOtenkiASPResponse, error)` (定義: `internal/api/api.go`)
+    *   `Client` 構造体 (`api/api.go`): 外部 API (zutool API, Otenki ASP API) との通信を担当。以下のメソッドが集約を取得するリポジトリの役割を果たす。
+        *   `GetPainStatus(areaCode string, setWeatherPoint *string) (models.GetPainStatusResponse, error)` (定義: `api/api.go`)
+        *   `GetWeatherPoint(keyword string) (models.GetWeatherPointResponse, error)` (定義: `api/api.go`)
+        *   `GetWeatherStatus(cityCode string) (models.GetWeatherStatusResponse, error)` (定義: `api/api.go`)
+        *   `GetOtenkiASP(cityCode string) (models.GetOtenkiASPResponse, error)` (定義: `api/api.go`)
 
 *   **アプリケーションサービス (Application Services)**: ユースケースを実現するための処理フローを定義する。ドメインオブジェクト（エンティティ、値オブジェクト、リポジトリ）を利用してタスクを実行する。
     *   `RunPainStatus` (`internal/commands/pain_status.go`): `pain_status` コマンドの実行ロジック。引数を解釈し、`Client.GetPainStatus` を呼び出し、結果を `Presenter` に渡す。
