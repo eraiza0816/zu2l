@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"errors"
-	"github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/api"
 	"github.com/eraiza0816/zu2l/internal/presenter"
 
 	"github.com/spf13/cobra"
@@ -25,22 +25,23 @@ func RunWeatherStatus(client *api.Client, pres presenter.Presenter, cmd *cobra.C
 	}
 	sort.Ints(nFlag) // Sort the days to display them chronologically
 
-	// 2. Call the API client
+	// 2. APIクライアントを呼び出して気象状況を取得
 	res, err := client.GetWeatherStatus(cityCode)
 	if err != nil {
-		// Handle potential API errors (e.g., city not found)
+		// APIエラーかどうかを判定
 		var apiErr *api.APIError
 		if errors.As(err, &apiErr) {
-			// Return specific API errors directly
+			// APIエラーの場合は、エラー内容をそのまま返す
 			return fmt.Errorf("気象状況の取得に失敗しました: %w", err)
 		}
-		// Wrap other potential errors
+		// その他のエラーの場合は、予期せぬエラーとしてラップして返す
 		return fmt.Errorf("気象状況の取得中に予期せぬエラーが発生しました: %w", err)
 	}
 
-	// 3. Iterate through requested days and call the presenter
+	// 3. 指定された日付オフセットごとに結果を表示
 	for _, n := range nFlag {
 		var dayName string
+		// 日付オフセット(n)に応じて表示用の日付名を設定
 		switch n {
 		case -1:
 			dayName = "yesterday"
@@ -51,15 +52,15 @@ func RunWeatherStatus(client *api.Client, pres presenter.Presenter, cmd *cobra.C
 		case 2:
 			dayName = "dayaftertomorrow"
 		default:
-			// This case should not be reached due to earlier validation
+			// バリデーションにより、このケースには到達しないはず
 			return fmt.Errorf("内部エラー: 無効な日付オフセット %d", n)
 		}
 
-		// Pass the relevant data slice and day info to the presenter
+		// プレゼンターを呼び出して、該当日の気象状況を表示
 		err = pres.PresentWeatherStatus(res, n, dayName)
 		if err != nil {
-			// Log or print error for the specific day, but potentially continue with others?
-			// For now, return the first error encountered during presentation.
+			// 表示中にエラーが発生した場合、そのエラーを返す
+			// TODO: 特定の日の表示エラーが発生しても、他の日の表示を続けるか検討
 			return fmt.Errorf("%s の結果表示に失敗しました: %w", dayName, err)
 		}
 	}

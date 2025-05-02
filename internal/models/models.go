@@ -6,44 +6,50 @@ import (
 	"time"
 )
 
-// APIDateTime is a custom type for handling the specific date-time format "YYYY-MM-DD HH" from the API.
+// APIDateTime は API からの特定の日時フォーマット "YYYY-MM-DD HH" を処理するためのカスタム型 (値オブジェクト) です。
 type APIDateTime struct {
-	time.Time
+	time.Time // time.Time を埋め込む
 }
 
-// apiDateTimeLayout defines the expected layout for parsing and formatting APIDateTime.
-const apiDateTimeLayout = "2006-01-02 15"
+// apiDateTimeLayout は APIDateTime のパースおよびフォーマットに使用される期待されるレイアウトを定義します。
+const apiDateTimeLayout = "2006-01-02 15" // "YYYY-MM-DD HH" 形式
 
-// UnmarshalJSON implements the json.Unmarshaler interface for APIDateTime.
-// It parses the string "YYYY-MM-DD HH" into a time.Time object.
+// UnmarshalJSON は APIDateTime の json.Unmarshaler インターフェースを実装します。
+// 文字列 "YYYY-MM-DD HH" を time.Time オブジェクトにパースします。
 func (adt *APIDateTime) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), `"`)
-	if s == "null" || s == "" { // Handle null or empty string
-		adt.Time = time.Time{} // Set to zero value
+	s := strings.Trim(string(b), `"`) // ダブルクォートを除去
+	// null または空文字列の場合の処理
+	if s == "null" || s == "" {
+		adt.Time = time.Time{} // ゼロ値に設定
 		return nil
 	}
+	// まず "YYYY-MM-DD HH" 形式でのパースを試みる
 	t, err := time.Parse(apiDateTimeLayout, s)
 	if err != nil {
-		// Attempt to parse just the date if time is missing (e.g., "2023-10-26")
-		// This might be needed for some API responses, adjust if necessary.
+		// パース失敗した場合、時刻部分が欠落している可能性を考慮し、
+		// 日付のみ ("YYYY-MM-DD") の形式でのパースを試みる
+		// (一部のAPIレスポンスで必要になる可能性があるため。必要に応じて調整)
 		t, errDate := time.Parse("2006-01-02", s)
 		if errDate != nil {
-			// Return the original parsing error if date-only parsing also fails
-			return fmt.Errorf("failed to parse APIDateTime %q: %w", s, err)
+			// 日付のみのパースも失敗した場合、元のパースエラーを返す
+			return fmt.Errorf("APIDateTime %q のパースに失敗しました: %w", s, err)
 		}
-		// If date-only parsing succeeds, use the resulting time (time part will be 00:00:00)
+		// 日付のみのパースが成功した場合、その結果を使用する (時刻部分は 00:00:00 になる)
 		adt.Time = t
 		return nil
 	}
+	// "YYYY-MM-DD HH" 形式でのパースが成功した場合
 	adt.Time = t
 	return nil
 }
 
-// MarshalJSON implements the json.Marshaler interface for APIDateTime.
-// It formats the time.Time object back into the "YYYY-MM-DD HH" string format.
+// MarshalJSON は APIDateTime の json.Marshaler インターフェースを実装します。
+// time.Time オブジェクトを "YYYY-MM-DD HH" 文字列形式にフォーマットします。
 func (adt APIDateTime) MarshalJSON() ([]byte, error) {
+	// Time がゼロ値の場合、"null" を返す
 	if adt.Time.IsZero() {
 		return []byte("null"), nil
 	}
+	// 指定されたレイアウトでフォーマットし、ダブルクォートで囲んだバイトスライスを返す
 	return []byte(`"` + adt.Time.Format(apiDateTimeLayout) + `"`), nil
 }

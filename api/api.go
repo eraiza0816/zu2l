@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/eraiza0816/zu2l/internal/models" // Keep internal import for models
+	"github.com/eraiza0816/zu2l/internal/models"
 )
 
 const (
@@ -27,9 +27,9 @@ type Client struct {
 	userAgent   string
 }
 
-// NewClient creates a new API client.
-// If baseURL or otenkiBaseURL are empty strings, default values are used.
-// If timeout is zero, a default timeout is used.
+// NewClient は新しいAPIクライアントを作成します。
+// baseURL または otenkiBaseURL が空文字列の場合、デフォルト値が使用されます。
+// timeout がゼロの場合、デフォルトのタイムアウト値が使用されます。
 func NewClient(baseURL, otenkiBaseURL string, timeout time.Duration) *Client {
 	if baseURL == "" {
 		baseURL = defaultBaseURL
@@ -51,204 +51,208 @@ func NewClient(baseURL, otenkiBaseURL string, timeout time.Duration) *Client {
 	}
 }
 
-// doRequest is a helper method to execute HTTP requests and handle common logic.
+// doRequest はHTTPリクエストを実行し、共通のロジック（User-Agent設定、レスポンス読み込み、ステータスコードチェック、エラー処理）を処理するヘルパーメソッドです。
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
-	req.Header.Set("User-Agent", c.userAgent) // Use userAgent from Client struct
-	resp, err := c.httpClient.Do(req) // Use httpClient from Client struct
+	req.Header.Set("User-Agent", c.userAgent) // Client構造体のuserAgentを使用
+	resp, err := c.httpClient.Do(req) // Client構造体のhttpClientを使用
 	if err != nil {
-		// Network or connection error
-		return nil, fmt.Errorf("failed to execute request: %w", err)
+		// ネットワークエラーまたは接続エラー
+		return nil, fmt.Errorf("リクエストの実行に失敗しました: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		// Error reading response body
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		// レスポンスボディの読み込みエラー
+		return nil, fmt.Errorf("レスポンスボディの読み込みに失敗しました: %w", err)
 	}
 
+	// ステータスコードが200 OKでない場合のエラーハンドリング
 	if resp.StatusCode != http.StatusOK {
-		// Non-200 status code
 		var errorResponse models.ErrorResponse
-		// Try decoding zutool's specific error format
+		// zutool固有のエラー形式のデコードを試みる
 		if json.Unmarshal(body, &errorResponse) == nil && errorResponse.ErrorMessage != "" {
+			// デコード成功し、エラーメッセージがあればAPIErrorを生成して返す
 			return nil, newAPIError(resp.StatusCode, string(body), errorResponse.ErrorMessage, nil)
 		}
-		// Fallback to generic API error if decoding fails
+		// デコード失敗、またはエラーメッセージがない場合は、汎用のAPIErrorを生成して返す
 		return nil, newAPIError(resp.StatusCode, string(body), "", nil)
 	}
 
+	// 成功した場合はレスポンスボディを返す
 	return body, nil
 }
 
-// _get is a private helper method to fetch raw response body from the primary API (baseURL).
-// It also checks for embedded API errors within a 200 OK response.
+// _get はプライマリAPI (baseURL) から生のレスポンスボディを取得するプライベートヘルパーメソッドです。
+// 200 OKレスポンス内に埋め込まれたAPIエラーもチェックします。
 func (c *Client) _get(path string, param string) ([]byte, error) {
 	apiURL := fmt.Sprintf("%s%s/%s", c.baseURL, path, param)
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request for %s: %w", path, err)
+		return nil, fmt.Errorf("%s のリクエスト作成に失敗しました: %w", path, err)
 	}
 
-	body, err := c.doRequest(req) // Call the doRequest method
+	// doRequestメソッドを呼び出してリクエストを実行
+	body, err := c.doRequest(req)
 	if err != nil {
-		// If doRequest returned an error (e.g., non-200 status), return it directly.
-		return nil, fmt.Errorf("request failed for %s: %w", path, err)
+		// doRequestがエラー（例: 非200ステータス）を返した場合、そのまま返す
+		return nil, fmt.Errorf("%s のリクエストに失敗しました: %w", path, err)
 	}
 
-	// --- Start: Check for API error within 200 OK response ---
-	// (This logic remains the same for now, but might be refactored later)
+	// --- Start: 200 OKレスポンス内のAPIエラーチェック ---
+	// (このロジックは現状維持ですが、将来リファクタリングされる可能性があります)
 	var errorResponse models.ErrorResponse
-	// Try unmarshalling into the error structure first.
-	// We ignore the error here because failing to unmarshal into ErrorResponse is expected for valid data.
+	// まずエラー構造体へのアンマーシャルを試みる
+	// 有効なデータの場合、ErrorResponseへのアンマーシャル失敗は想定されるため、エラーは無視する
 	_ = json.Unmarshal(body, &errorResponse)
 
-	// If unmarshalling into ErrorResponse succeeded AND we got an error message,
-	// it means the API returned 200 OK but signaled an error internally.
+	// ErrorResponseへのアンマーシャルが成功し、かつエラーメッセージが存在する場合、
+	// APIは200 OKを返したが、内部的にエラーを示していることを意味する
 	if errorResponse.ErrorMessage != "" {
-		// Return the body along with the specific APIError.
+		// ボディと特定のAPIErrorを一緒に返す
 		return body, newAPIError(http.StatusOK, string(body), errorResponse.ErrorMessage, nil)
 	}
-	// --- End: Check for API error within 200 OK response ---
+	// --- End: 200 OKレスポンス内のAPIエラーチェック ---
 
-	// If no embedded error, return the raw body for the caller to unmarshal.
+	// 埋め込みエラーがない場合は、呼び出し元がアンマーシャルするために生のボディを返す
 	return body, nil
 }
 
-// GetPainStatus fetches pain status information.
-func (c *Client) GetPainStatus( // Added receiver (c *Client)
+// GetPainStatus は痛み指数情報を取得します。
+// setWeatherPointが指定されている場合、事前に地点設定APIを呼び出します。
+func (c *Client) GetPainStatus(
 	areaCode string,
-	setWeatherPoint *string,
+	setWeatherPoint *string, // 地点コード (オプション)
 ) (models.GetPainStatusResponse, error) {
 	var result models.GetPainStatusResponse
 
-	// --- Start: setWeatherPoint logic ---
+	// --- Start: 地点設定API呼び出しロジック ---
 	if setWeatherPoint != nil && *setWeatherPoint != "" {
 		setWeatherPointURL := fmt.Sprintf("%s/setweatherpoint/%s", c.baseURL, *setWeatherPoint)
 		req, err := http.NewRequest("GET", setWeatherPointURL, nil)
 		if err != nil {
-			return result, fmt.Errorf("failed to create setweatherpoint request: %w", err)
+			return result, fmt.Errorf("setweatherpointリクエストの作成に失敗しました: %w", err)
 		}
 
-		setBody, err := c.doRequest(req) // Use client's doRequest
+		// 地点設定APIを呼び出す
+		setBody, err := c.doRequest(req)
 		if err != nil {
-			// Check if it's an APIError from doRequest
+			// doRequestからのAPIErrorかどうかを確認
 			var apiErr *APIError
 			if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusNotFound {
-				// Treat 404 for setweatherpoint as a specific error
+				// setweatherpointの404は特定のエラーとして扱う
 				return result, fmt.Errorf("地点コード '%s' が見つかりません (setweatherpoint failed with 404)", *setWeatherPoint)
 			}
-			// Otherwise, wrap the generic error
-			return result, fmt.Errorf("setweatherpoint request failed: %w", err)
+			// それ以外のエラーはラップして返す
+			return result, fmt.Errorf("setweatherpointリクエストに失敗しました: %w", err)
 		}
 
-
+		// 地点設定APIのレスポンスを解析
 		var setResp models.SetWeatherPointResponse
 		if err := json.Unmarshal(setBody, &setResp); err != nil {
-			return result, fmt.Errorf("failed to unmarshal setweatherpoint response: %w, body: %s", err, string(setBody))
+			return result, fmt.Errorf("setweatherpointレスポンスのアンマーシャルに失敗しました: %w, body: %s", err, string(setBody))
 		}
 		if setResp.Response != "ok" {
-			// Consider returning a more specific error if the response is not "ok"
-			return result, fmt.Errorf("setweatherpoint response was not 'ok': %s", setResp.Response)
+			// レスポンスが "ok" でない場合はエラーとする
+			// TODO: より具体的なエラーを返すことを検討
+			return result, fmt.Errorf("setweatherpointレスポンスが 'ok' ではありませんでした: %s", setResp.Response)
 		}
 	}
-	// --- End: Moved setWeatherPoint logic here ---
+	// --- End: 地点設定API呼び出しロジック ---
 
-	// --- End: setWeatherPoint logic ---
-
-	// Now make the main request using the internal _get method
+	// 痛み指数APIを呼び出す (_getを使用)
 	body, err := c._get("/getpainstatus", areaCode)
 	if err != nil {
-		// Check if the error returned by _get was the embedded APIError (status 200)
+		// _getが返したエラーが埋め込みAPIError (status 200) かどうかを確認
 		var apiErr *APIError
 		if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusOK {
-			// It was the embedded error, return it directly
+			// 埋め込みエラーの場合はそのまま返す
 			return result, err
 		}
-		// Otherwise, wrap the error from _get
-		return result, fmt.Errorf("failed to get pain status body: %w", err)
+		// それ以外のエラーはラップして返す
+		return result, fmt.Errorf("痛み指数情報の取得に失敗しました: %w", err)
 	}
 
-	// Unmarshal the valid response body into the result struct
+	// 正常なレスポンスボディを結果構造体にアンマーシャル
 	if err := json.Unmarshal(body, &result); err != nil {
-		return result, fmt.Errorf("failed to unmarshal GetPainStatus response: %w, body: %s", err, string(body))
+		return result, fmt.Errorf("GetPainStatusレスポンスのアンマーシャルに失敗しました: %w, body: %s", err, string(body))
 	}
 
 	return result, nil
 }
 
-
-// GetWeatherPoint fetches weather point information.
+// GetWeatherPoint は地点検索情報を取得します。
 func (c *Client) GetWeatherPoint(keyword string) (models.GetWeatherPointResponse, error) {
-	// Use the internal _get method to fetch the raw body
+	// 内部の_getメソッドを使用して生のボディを取得
 	body, err := c._get("/getweatherpoint", keyword)
 	if err != nil {
-		// Check if it's an APIError from doRequest (via _get)
+		// doRequest (via _get) からのAPIErrorかどうかを確認
 		var apiErr *APIError
 		if errors.As(err, &apiErr) {
-			// If it's a known API error (like 404 for empty keyword), return it directly
-			// Return zero value of the response struct along with the error
+			// 既知のAPIエラー（例：空キーワードでの404）の場合はそのまま返す
+			// レスポンス構造体のゼロ値とエラーを返す
 			return models.GetWeatherPointResponse{}, err
 		}
-		// Otherwise, wrap the error
-		return models.GetWeatherPointResponse{}, fmt.Errorf("request failed for /getweatherpoint: %w", err)
+		// それ以外のエラーはラップして返す
+		return models.GetWeatherPointResponse{}, fmt.Errorf("/getweatherpoint のリクエストに失敗しました: %w", err)
 	}
 
-	// Call the dedicated parser function
+	// 専用のパーサー関数を呼び出す
 	return parseWeatherPointResponse(body)
 }
 
-
-// GetWeatherStatus fetches detailed weather status.
+// GetWeatherStatus は詳細な気象状況を取得します。
 func (c *Client) GetWeatherStatus(cityCode string) (models.GetWeatherStatusResponse, error) {
 	var result models.GetWeatherStatusResponse
 
+	// 内部の_getメソッドを使用して生のボディを取得
 	body, err := c._get("/getweatherstatus", cityCode)
 	if err != nil {
-		// Check if the error returned by _get was the embedded APIError (status 200)
+		// _getが返したエラーが埋め込みAPIError (status 200) かどうかを確認
 		var apiErr *APIError
 		if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusOK {
-			// It was the embedded error, return it directly
+			// 埋め込みエラーの場合はそのまま返す
 			return result, err
 		}
-		// Otherwise, wrap the error from _get
-		return result, fmt.Errorf("failed to get weather status body: %w", err)
+		// それ以外のエラーはラップして返す
+		return result, fmt.Errorf("気象状況の取得に失敗しました: %w", err)
 	}
 
-	// Unmarshal the valid response body into the result struct
+	// 正常なレスポンスボディを結果構造体にアンマーシャル
 	if err := json.Unmarshal(body, &result); err != nil {
-		return result, fmt.Errorf("failed to unmarshal GetWeatherStatus response: %w, body: %s", err, string(body))
+		return result, fmt.Errorf("GetWeatherStatusレスポンスのアンマーシャルに失敗しました: %w, body: %s", err, string(body))
 	}
 
 	return result, nil
 }
 
-// GetOtenkiASP fetches weather information from Otenki ASP.
+// GetOtenkiASP はOtenki ASPから気象情報を取得します。
 func (c *Client) GetOtenkiASP(cityCode string) (models.GetOtenkiASPResponse, error) {
 	params := url.Values{}
-	params.Set("csid", "mmcm") // Keep as is for now
-	params.Set("contents_id", "day_tenki--day_pre--hight_temp--low_temp--day_wind_v--day_wind_d--zutu_level_day--low_humidity") // Keep as is
+	params.Set("csid", "mmcm") // 現状維持
+	params.Set("contents_id", "day_tenki--day_pre--hight_temp--low_temp--day_wind_v--day_wind_d--zutu_level_day--low_humidity") // 現状維持
 	params.Set("duration_yohoushi", "7")
 	params.Set("where", fmt.Sprintf("CHITEN_%s", cityCode))
-	params.Set("json", "on") // Keep as is
+	params.Set("json", "on") // 現状維持
 
-	apiURL := fmt.Sprintf("%s/getElements", c.otenkiBaseURL) // Use otenkiBaseURL from Client struct
+	apiURL := fmt.Sprintf("%s/getElements", c.otenkiBaseURL) // Client構造体のotenkiBaseURLを使用
 	u, err := url.Parse(apiURL)
 	if err != nil {
-		return models.GetOtenkiASPResponse{}, fmt.Errorf("failed to parse otenki asp url: %w", err)
+		return models.GetOtenkiASPResponse{}, fmt.Errorf("Otenki ASP URLのパースに失敗しました: %w", err)
 	}
 	u.RawQuery = params.Encode()
 
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return models.GetOtenkiASPResponse{}, fmt.Errorf("failed to create otenki asp request: %w", err)
+		return models.GetOtenkiASPResponse{}, fmt.Errorf("Otenki ASPリクエストの作成に失敗しました: %w", err)
 	}
 
-	body, err := c.doRequest(req) // Use client's doRequest
+	// ClientのdoRequestを使用してリクエストを実行
+	body, err := c.doRequest(req)
 	if err != nil {
-		return models.GetOtenkiASPResponse{}, fmt.Errorf("otenki asp request failed: %w", err)
+		return models.GetOtenkiASPResponse{}, fmt.Errorf("Otenki ASPリクエストに失敗しました: %w", err)
 	}
 
-	// Call the dedicated parser function
+	// 専用のパーサー関数を呼び出す
 	return parseOtenkiASPResponse(body)
 }

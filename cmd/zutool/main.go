@@ -4,113 +4,114 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/eraiza0816/zu2l/api" // Update import path
+	"github.com/eraiza0816/zu2l/api"
 	"github.com/eraiza0816/zu2l/internal/commands"
 	"github.com/eraiza0816/zu2l/internal/presenter"
 )
 
-// No global jsonFlag anymore
-
-// Removed newTable function
-
 func main() {
-	// Instantiate the API client once
-	// Using default values for URLs and timeout for now
-	// TODO: Consider making these configurable via flags or config file later
+	// APIクライアントを一度だけインスタンス化
+	// 現状はURLとタイムアウトにデフォルト値を使用
+	// TODO: 将来的にフラグや設定ファイルで設定可能にすることを検討
 	apiClient := api.NewClient("", "", 0)
 
-	// Define a helper function to create the appropriate presenter based on flags
+	// フラグに基づいて適切なプレゼンターを作成するヘルパー関数を定義
 	getPresenter := func(cmd *cobra.Command) presenter.Presenter {
-		jsonOutput, _ := cmd.Flags().GetBool("json")
+		jsonOutput, _ := cmd.Flags().GetBool("json") // --json フラグの値を取得
 		if jsonOutput {
+			// --json が指定されていれば JSONPresenter を使用
 			return &presenter.JSONPresenter{Writer: os.Stdout}
 		}
+		// デフォルトは TablePresenter を使用
 		return &presenter.TablePresenter{Writer: os.Stdout}
 	}
 
-
+	// ルートコマンドの定義
 	rootCmd := &cobra.Command{
 		Use:   "zutool",
-		Short: "Get info from zutool <https://zutool.jp/>",
-		Long:  "A command-line tool to fetch weather and pain forecast information from zutool.jp.",
+		Short: "zutool <https://zutool.jp/> から情報を取得します",
+		Long:  "zutool.jp から天気や痛み予報の情報を取得するコマンドラインツールです。",
+		// ルートコマンド自体が実行された場合はヘルプを表示
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
 	}
 
+	// pain_status サブコマンドの定義
 	painStatusCommand := &cobra.Command{
-		Use:     "pain_status [area_code]",
-		Aliases: []string{"ps"},
-		Short:   "Get pain status forecast by prefecture",
-		Long:    "Fetches and displays the pain status forecast for the specified prefecture code.",
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error { // Use anonymous function
-			pres := getPresenter(cmd) // Get presenter based on flags
-			return commands.RunPainStatus(apiClient, pres, cmd, args) // Call command handler
+		Use:     "pain_status [area_code]", // area_code は必須引数
+		Aliases: []string{"ps"},            // エイリアス "ps"
+		Short:   "都道府県別の痛み予報を取得します",
+		Long:    "指定された都道府県コードの痛み予報を取得して表示します。",
+		Args:    cobra.ExactArgs(1), // 引数がちょうど1つであることを要求
+		// コマンド実行時の処理 (エラーを返す可能性があるため RunE を使用)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			pres := getPresenter(cmd) // フラグに基づいてプレゼンターを取得
+			// internal/commands のハンドラ関数を呼び出す
+			return commands.RunPainStatus(apiClient, pres, cmd, args)
 		},
 	}
-	painStatusCommand.Flags().StringP("set_weather_point", "s", "", "Set weather point code (e.g., '13113') to get area-specific forecast")
-	rootCmd.AddCommand(painStatusCommand)
+	// pain_status コマンドに --set_weather_point フラグを追加
+	painStatusCommand.Flags().StringP("set_weather_point", "s", "", "地点コード (例: '13113') を指定して地域固有の予報を取得")
+	rootCmd.AddCommand(painStatusCommand) // ルートコマンドにサブコマンドを追加
 
+	// weather_point サブコマンドの定義
 	weatherPointCommand := &cobra.Command{
-		Use:     "weather_point [keyword]",
-		Aliases: []string{"wp"},
-		Short:   "Search for weather points (locations)",
-		Long:    "Searches for weather point locations based on the provided keyword (e.g., city name).",
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error { // Use anonymous function
-			pres := getPresenter(cmd) // Get presenter based on flags
-			// Note: We pass cmd here so RunWeatherPoint can access the 'kata' flag
-			return commands.RunWeatherPoint(apiClient, pres, cmd, args) // Call command handler
+		Use:     "weather_point [keyword]", // keyword は必須引数
+		Aliases: []string{"wp"},            // エイリアス "wp"
+		Short:   "気象観測地点を検索します",
+		Long:    "指定されたキーワード (例: 都市名) に基づいて気象観測地点を検索します。",
+		Args:    cobra.ExactArgs(1), // 引数がちょうど1つであることを要求
+		RunE: func(cmd *cobra.Command, args []string) error {
+			pres := getPresenter(cmd) // フラグに基づいてプレゼンターを取得
+			// RunWeatherPoint が --kata フラグにアクセスできるように cmd を渡す
+			return commands.RunWeatherPoint(apiClient, pres, cmd, args)
 		},
 	}
-	weatherPointCommand.Flags().BoolP("kata", "k", false, "Include katakana name in the output table")
-	rootCmd.AddCommand(weatherPointCommand)
+	// weather_point コマンドに --kata フラグを追加
+	weatherPointCommand.Flags().BoolP("kata", "k", false, "出力テーブルにカタカナ名を含める")
+	rootCmd.AddCommand(weatherPointCommand) // ルートコマンドにサブコマンドを追加
 
+	// weather_status サブコマンドの定義
 	weatherStatusCommand := &cobra.Command{
-		Use:     "weather_status [city_code]",
-		Aliases: []string{"ws"},
-		Short:   "Get detailed weather status by city",
-		Long:    "Fetches and displays detailed weather status (temperature, pressure, etc.) for the specified city code.",
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error { // Use anonymous function
-			pres := getPresenter(cmd) // Get presenter based on flags
-			// Note: We pass cmd here so RunWeatherStatus can access the 'n' flag
-			return commands.RunWeatherStatus(apiClient, pres, cmd, args) // Call command handler
+		Use:     "weather_status [city_code]", // city_code は必須引数
+		Aliases: []string{"ws"},               // エイリアス "ws"
+		Short:   "都市別の詳細な気象状況を取得します",
+		Long:    "指定された都市コードの詳細な気象状況 (気温、気圧など) を取得して表示します。",
+		Args:    cobra.ExactArgs(1), // 引数がちょうど1つであることを要求
+		RunE: func(cmd *cobra.Command, args []string) error {
+			pres := getPresenter(cmd) // フラグに基づいてプレゼンターを取得
+			// RunWeatherStatus が --n フラグにアクセスできるように cmd を渡す
+			return commands.RunWeatherStatus(apiClient, pres, cmd, args)
 		},
 	}
-	weatherStatusCommand.Flags().IntSliceP("n", "n", []int{0}, "Specify day number(s) to show (-1 to 2)")
-	rootCmd.AddCommand(weatherStatusCommand)
+	// weather_status コマンドに --n フラグを追加
+	weatherStatusCommand.Flags().IntSliceP("n", "n", []int{0}, "表示する日のオフセット番号 (-1 から 2) を指定 (複数指定可)")
+	rootCmd.AddCommand(weatherStatusCommand) // ルートコマンドにサブコマンドを追加
 
+	// otenki_asp サブコマンドの定義
 	otenkiAspCommand := &cobra.Command{
-		Use:     "otenki_asp [city_code]",
-		Aliases: []string{"oa"},
-		Short:   "Get weather information from Otenki ASP",
-		Long:    "Fetches various weather forecast elements (weather, temp, wind, etc.) from the Otenki ASP service for specific major city codes.",
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error { // Use anonymous function
-			pres := getPresenter(cmd) // Get presenter based on flags
-			// Note: We pass cmd here so RunOtenkiAsp can access the 'n' flag
-			return commands.RunOtenkiAsp(apiClient, pres, cmd, args) // Call command handler
+		Use:     "otenki_asp [city_code]", // city_code は必須引数
+		Aliases: []string{"oa"},           // エイリアス "oa"
+		Short:   "Otenki ASP から気象情報を取得します",
+		Long:    "特定の主要都市コードについて、Otenki ASP サービスから様々な天気予報要素 (天気、気温、風など) を取得します。",
+		Args:    cobra.ExactArgs(1), // 引数がちょうど1つであることを要求
+		RunE: func(cmd *cobra.Command, args []string) error {
+			pres := getPresenter(cmd) // フラグに基づいてプレゼンターを取得
+			// RunOtenkiAsp が --n フラグにアクセスできるように cmd を渡す
+			return commands.RunOtenkiAsp(apiClient, pres, cmd, args)
 		},
 	}
-	otenkiAspCommand.Flags().IntSliceP("n", "n", []int{0, 1, 2, 3, 4, 5, 6}, "Specify forecast day number(s) to show (0 to 6)")
-	rootCmd.AddCommand(otenkiAspCommand)
+	// otenki_asp コマンドに --n フラグを追加
+	otenkiAspCommand.Flags().IntSliceP("n", "n", []int{0, 1, 2, 3, 4, 5, 6}, "表示する予報日のオフセット番号 (0 から 6) を指定 (複数指定可)")
+	rootCmd.AddCommand(otenkiAspCommand) // ルートコマンドにサブコマンドを追加
 
-	// Define the --json flag persistently for all commands
-	rootCmd.PersistentFlags().BoolP("json", "j", false, "Output results in JSON format")
+	// --json フラグを全てのコマンドで利用可能な永続フラグとして定義
+	rootCmd.PersistentFlags().BoolP("json", "j", false, "結果をJSON形式で出力する")
 
+	// ルートコマンドを実行
 	if err := rootCmd.Execute(); err != nil {
-		// Cobra already prints the error, so just exit
-		// fmt.Fprintln(os.Stderr, err) // Removed redundant error printing
-		os.Exit(1) // Exit with error code 1 if execution fails
+		// Cobra が既にエラーを出力するため、ここでは何もしない
+		os.Exit(1) // エラーコード 1 で終了
 	}
 }
-
-// Removed runPainStatus function
-// Removed runWeatherPoint function
-// Removed renderWeatherStatusTable function
-// Removed runWeatherStatus function
-// Removed runOtenkiAsp function
-// Removed getMapKeys function
-// Removed min function

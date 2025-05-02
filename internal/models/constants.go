@@ -1,14 +1,14 @@
 package models
 
-// WeatherEmojiMap maps weather codes (simplified) to emojis.
+// WeatherEmojiMap は天気コード (簡略化) を絵文字にマッピングします。
 var WeatherEmojiMap = map[int]string{
-	100: "☀", // Sunny
-	200: "☁", // Cloudy
-	300: "☔", // Rainy
-	400: "🌨", // Snowy
+	100: "☀", // 晴れ
+	200: "☁", // くもり
+	300: "☔", // 雨
+	400: "🌨", // 雪
 }
 
-// ConfirmedOtenkiAspCityCodeMap maps confirmed city codes for Otenki ASP to their names.
+// ConfirmedOtenkiAspCityCodeMap は Otenki ASP で確認済みの都市コードとその名称をマッピングします。
 var ConfirmedOtenkiAspCityCodeMap = map[string]string{
 	"01101": "札幌",
 	"04101": "仙台",
@@ -23,61 +23,61 @@ var ConfirmedOtenkiAspCityCodeMap = map[string]string{
 	"47201": "那覇",
 }
 
-// AreaEnum represents prefecture codes.
+// AreaEnum は都道府県コードを表す Enum (値オブジェクト) です。
 type AreaEnum string
 
-// Constants for AreaEnum representing prefecture codes.
+// AreaEnum の定数。都道府県コードを表します。
 const (
-	Hokkaido  AreaEnum = "01"
-	Aomori    AreaEnum = "02"
-	Iwate     AreaEnum = "03"
-	Miyagi    AreaEnum = "04"
-	Akita     AreaEnum = "05"
-	Yamagata  AreaEnum = "06"
-	Fukushima AreaEnum = "07"
-	Ibaraki   AreaEnum = "08"
-	Tochigi   AreaEnum = "09"
-	Gunma     AreaEnum = "10"
-	Saitama   AreaEnum = "11"
-	Chiba     AreaEnum = "12"
-	Tokyo     AreaEnum = "13"
-	Kanagawa  AreaEnum = "14"
-	Niigata   AreaEnum = "15"
-	Toyama    AreaEnum = "16"
-	Ishikawa  AreaEnum = "17"
-	Fukui     AreaEnum = "18"
-	Yamanashi AreaEnum = "19"
-	Nagano    AreaEnum = "20"
-	Gifu      AreaEnum = "21"
-	Shizuoka  AreaEnum = "22"
-	Aichi     AreaEnum = "23"
-	Mie       AreaEnum = "24"
-	Shiga     AreaEnum = "25"
-	// Kyoto     AreaEnum = "26" // API not supported?
-	Osaka     AreaEnum = "27"
-	Hyogo     AreaEnum = "28"
-	Nara      AreaEnum = "29"
-	Wakayama  AreaEnum = "30"
-	Tottori   AreaEnum = "31"
-	Shimane   AreaEnum = "32"
-	Okayama   AreaEnum = "33"
-	Hiroshima AreaEnum = "34"
-	Yamaguchi AreaEnum = "35"
-	Tokushima AreaEnum = "36"
-	Kagawa    AreaEnum = "37"
-	Ehime     AreaEnum = "38"
-	Kochi     AreaEnum = "39"
-	Fukuoka   AreaEnum = "40"
-	Saga      AreaEnum = "41"
-	Nagasaki  AreaEnum = "42"
-	Kumamoto  AreaEnum = "43"
-	Oita      AreaEnum = "44"
-	Miyazaki  AreaEnum = "45"
-	Kagoshima AreaEnum = "46"
-	Okinawa   AreaEnum = "47"
+	Hokkaido  AreaEnum = "01" // 北海道
+	Aomori    AreaEnum = "02" // 青森
+	Iwate     AreaEnum = "03" // 岩手
+	Miyagi    AreaEnum = "04" // 宮城
+	Akita     AreaEnum = "05" // 秋田
+	Yamagata  AreaEnum = "06" // 山形
+	Fukushima AreaEnum = "07" // 福島
+	Ibaraki   AreaEnum = "08" // 茨城
+	Tochigi   AreaEnum = "09" // 栃木
+	Gunma     AreaEnum = "10" // 群馬
+	Saitama   AreaEnum = "11" // 埼玉
+	Chiba     AreaEnum = "12" // 千葉
+	Tokyo     AreaEnum = "13" // 東京
+	Kanagawa  AreaEnum = "14" // 神奈川
+	Niigata   AreaEnum = "15" // 新潟
+	Toyama    AreaEnum = "16" // 富山
+	Ishikawa  AreaEnum = "17" // 石川
+	Fukui     AreaEnum = "18" // 福井
+	Yamanashi AreaEnum = "19" // 山梨
+	Nagano    AreaEnum = "20" // 長野
+	Gifu      AreaEnum = "21" // 岐阜
+	Shizuoka  AreaEnum = "22" // 静岡
+	Aichi     AreaEnum = "23" // 愛知
+	Mie       AreaEnum = "24" // 三重
+	Shiga     AreaEnum = "25" // 滋賀
+	// Kyoto     AreaEnum = "26" // 京都 - API非対応？
+	Osaka     AreaEnum = "27" // 大阪
+	Hyogo     AreaEnum = "28" // 兵庫
+	Nara      AreaEnum = "29" // 奈良
+	Wakayama  AreaEnum = "30" // 和歌山
+	Tottori   AreaEnum = "31" // 鳥取
+	Shimane   AreaEnum = "32" // 島根
+	Okayama   AreaEnum = "33" // 岡山
+	Hiroshima AreaEnum = "34" // 広島
+	Yamaguchi AreaEnum = "35" // 山口
+	Tokushima AreaEnum = "36" // 徳島
+	Kagawa    AreaEnum = "37" // 香川
+	Ehime     AreaEnum = "38" // 愛媛
+	Kochi     AreaEnum = "39" // 高知
+	Fukuoka   AreaEnum = "40" // 福岡
+	Saga      AreaEnum = "41" // 佐賀
+	Nagasaki  AreaEnum = "42" // 長崎
+	Kumamoto  AreaEnum = "43" // 熊本
+	Oita      AreaEnum = "44" // 大分
+	Miyazaki  AreaEnum = "45" // 宮崎
+	Kagoshima AreaEnum = "46" // 鹿児島
+	Okinawa   AreaEnum = "47" // 沖縄
 )
 
-// AreaCodeMap maps prefecture names (Kanji and Katakana) to their codes.
+// AreaCodeMap は都道府県名 (漢字およびカタカナ) を都道府県コードにマッピングします。
 var AreaCodeMap = map[string]string{
 	"北海道": "01", "ホッカイドウ": "01",
 	"青森": "02", "アオモリ": "02",
@@ -104,7 +104,7 @@ var AreaCodeMap = map[string]string{
 	"愛知": "23", "アイチ": "23",
 	"三重": "24", "ミエ": "24",
 	"滋賀": "25", "シガ": "25",
-	// "京都": "26", "キョウト": "26", // API not supported?
+	// "京都": "26", "キョウト": "26", // 京都 - API非対応？
 	"大阪": "27", "オオサカ": "27",
 	"兵庫": "28", "ヒョウゴ": "28",
 	"奈良": "29", "ナラ": "29",
@@ -128,10 +128,10 @@ var AreaCodeMap = map[string]string{
 	"沖縄": "47", "オキナワ": "47",
 }
 
-// PressureLevelEnum represents pressure level codes.
+// PressureLevelEnum は気圧レベルコードを表す Enum (値オブジェクト) です。
 type PressureLevelEnum string
 
-// Constants for PressureLevelEnum.
+// PressureLevelEnum の定数。
 const (
 	Normal      PressureLevelEnum = "0" // 通常
 	SlightAlert PressureLevelEnum = "2" // やや注意
@@ -140,10 +140,10 @@ const (
 	SevereAlert PressureLevelEnum = "5" // 厳重警戒
 )
 
-// WeatherEnum represents weather condition codes.
+// WeatherEnum は天気コードを表す Enum (値オブジェクト) です。
 type WeatherEnum string
 
-// Constants for WeatherEnum.
+// WeatherEnum の定数。
 const (
 	Sunny           WeatherEnum = "100" // 晴れ
 	SunnyCloudy     WeatherEnum = "101" // 晴れ時々くもり
