@@ -26,8 +26,17 @@ func main() {
 	if len(weatherStatus.Today) > 0 {
 		fmt.Println("Today:")
 		for _, status := range weatherStatus.Today {
-			fmt.Printf("  Time: %s, Temp: %.1f°C, Pressure: %.1fhPa, Weather: %s\n",
-				status.DateTime.Format("15:04"), status.Temperature, status.Pressure, status.Weather)
+			tempStr := "N/A"
+			if status.Temp != nil {
+				tempStr = *status.Temp + "°C" // Assuming Temp is a string like "15.3"
+			}
+			fmt.Printf("  Time: %s, Temp: %s, Pressure: %s, Weather: %s, PressureLevel: %s\n",
+				status.Time, // Use Time (string)
+				tempStr,     // Use Temp (*string) with nil check
+				status.Pressure,
+				status.Weather.String(), // Use WeatherEnum.String()
+				status.PressureLevel.String(), // Add PressureLevel
+			)
 		}
 	} else {
 		fmt.Println("  No data for today.")
@@ -46,7 +55,7 @@ func main() {
 	fmt.Println("------------------------------------")
 	if len(weatherPoint.Result.Root) > 0 {
 		for _, point := range weatherPoint.Result.Root {
-			fmt.Printf("  City Code: %s, Name: %s (%s)\n", point.CityCode, point.Name, point.Kana)
+			fmt.Printf("  City Code: %s, Name: %s (%s)\n", point.CityCode, point.Name, point.NameKata) // Use NameKata
 		}
 	} else {
 		fmt.Println("  No points found.")
@@ -61,10 +70,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error getting pain status: %v", err)
 	}
-	fmt.Printf("Pain Status for %s:\n", painStatus.PainnoterateStatus.AreaName)
+	fmt.Printf("Pain Status for %s (Time: %s-%s):\n",
+		painStatus.PainnoterateStatus.AreaName,
+		painStatus.PainnoterateStatus.TimeStart,
+		painStatus.PainnoterateStatus.TimeEnd,
+	)
 	fmt.Println("------------------------------------")
-	fmt.Printf("  Comment: %s\n", painStatus.PainnoterateStatus.Comment)
-	fmt.Printf("  Level: %d\n", painStatus.PainnoterateStatus.Level)
+	fmt.Printf("  Rate Normal: %.2f\n", painStatus.PainnoterateStatus.RateNormal)
+	fmt.Printf("  Rate Little: %.2f\n", painStatus.PainnoterateStatus.RateLittle)
+	fmt.Printf("  Rate Painful: %.2f\n", painStatus.PainnoterateStatus.RatePainful)
+	fmt.Printf("  Rate Bad: %.2f\n", painStatus.PainnoterateStatus.RateBad)
 	fmt.Println("------------------------------------")
 
 	// 例: Otenki ASPから東京の情報を取得

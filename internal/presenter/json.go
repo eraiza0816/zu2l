@@ -3,7 +3,7 @@ package presenter
 import (
 	"encoding/json"
 	"fmt"
-	"io" // Added io import
+	"io"
 	"os"
 	"time"
 	"github.com/eraiza0816/zu2l/internal/models"
@@ -11,11 +11,9 @@ import (
 
 // JSONPresenter は Presenter インターフェースを実装し、データをJSON形式で出力します。
 type JSONPresenter struct {
-	// Writer は出力先を指定します。nil の場合は os.Stdout がデフォルトで使用されます。
-	Writer io.Writer
+	Writer io.Writer // 出力先 (nil の場合は os.Stdout)
 }
 
-// ensureWriter は設定された Writer を返します。nil の場合は os.Stdout を返します。
 func (p *JSONPresenter) ensureWriter() io.Writer {
 	if p.Writer == nil {
 		return os.Stdout
@@ -25,12 +23,10 @@ func (p *JSONPresenter) ensureWriter() io.Writer {
 
 // marshalAndPrint はデータをインデント付きのJSONにマーシャリングし、ライターに出力するヘルパーメソッドです。
 func (p *JSONPresenter) marshalAndPrint(data interface{}) error {
-	// データをJSONバイトにマーシャリング (インデント付き)
 	jsonBytes, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return fmt.Errorf("データをJSONにマーシャリングできませんでした: %w", err)
 	}
-	// JSON文字列を ensureWriter で取得したライターに出力 (改行付き)
 	_, err = fmt.Fprintln(p.ensureWriter(), string(jsonBytes))
 	if err != nil {
 		return fmt.Errorf("JSON出力の書き込みに失敗しました: %w", err)

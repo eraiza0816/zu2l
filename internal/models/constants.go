@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // WeatherEmojiMap は天気コード (簡略化) を絵文字にマッピングします。
 var WeatherEmojiMap = map[int]string{
 	100: "☀", // 晴れ
@@ -26,7 +28,6 @@ var ConfirmedOtenkiAspCityCodeMap = map[string]string{
 // AreaEnum は都道府県コードを表す Enum (値オブジェクト) です。
 type AreaEnum string
 
-// AreaEnum の定数。都道府県コードを表します。
 const (
 	Hokkaido  AreaEnum = "01" // 北海道
 	Aomori    AreaEnum = "02" // 青森
@@ -131,7 +132,6 @@ var AreaCodeMap = map[string]string{
 // PressureLevelEnum は気圧レベルコードを表す Enum (値オブジェクト) です。
 type PressureLevelEnum string
 
-// PressureLevelEnum の定数。
 const (
 	Normal      PressureLevelEnum = "0" // 通常
 	SlightAlert PressureLevelEnum = "2" // やや注意
@@ -140,10 +140,27 @@ const (
 	SevereAlert PressureLevelEnum = "5" // 厳重警戒
 )
 
+// String は PressureLevelEnum の文字列表現を返します。
+func (p PressureLevelEnum) String() string {
+	switch p {
+	case Normal:
+		return "通常"
+	case SlightAlert:
+		return "やや注意"
+	case Caution:
+		return "注意"
+	case Alert:
+		return "警戒"
+	case SevereAlert:
+		return "厳重警戒"
+	default:
+		return fmt.Sprintf("不明な気圧レベル(%s)", string(p))
+	}
+}
+
 // WeatherEnum は天気コードを表す Enum (値オブジェクト) です。
 type WeatherEnum string
 
-// WeatherEnum の定数。
 const (
 	Sunny           WeatherEnum = "100" // 晴れ
 	SunnyCloudy     WeatherEnum = "101" // 晴れ時々くもり
@@ -187,3 +204,87 @@ const (
 	RainySnowy3     WeatherEnum = "414" // 雪のち雨
 	SnowyAfterCloudy WeatherEnum = "416" // 雪のちくもり
 )
+
+// String は WeatherEnum の文字列表現を返します。
+func (w WeatherEnum) String() string {
+	switch w {
+	case Sunny:
+		return "晴れ"
+	case SunnyCloudy:
+		return "晴れ時々くもり"
+	case SunnySometimes:
+		return "晴れ一時くもり"
+	case SunnyRainy:
+		return "晴れ時々雨"
+	case SunnySnowy:
+		return "晴れ時々雪"
+	case CloudySunny:
+		return "晴れのちくもり"
+	case RainySunny:
+		return "晴れのち雨"
+	case SnowySunny:
+		return "晴れのち雪"
+	case Cloudy:
+		return "くもり"
+	case CloudySunny2:
+		return "くもり時々晴れ"
+	case CloudySometimes:
+		return "くもり一時晴れ"
+	case CloudyRainy:
+		return "くもり時々雨"
+	case CloudyRainyTemp:
+		return "くもり一時雨"
+	case CloudySnowy:
+		return "くもり時々雪"
+	case CloudySnowyTemp:
+		return "くもり一時雪"
+	case CloudyAfterSunny:
+		return "くもりのち晴れ"
+	case RainyCloudy:
+		return "くもりのち雨"
+	case SnowyCloudy:
+		return "くもりのち雪"
+	case Rain:
+		return "雨"
+	case RainySunny2:
+		return "雨時々晴れ"
+	case RainySometimes:
+		return "雨一時晴れ"
+	case RainyCloudy2:
+		return "雨時々くもり"
+	case RainyCloudyTemp:
+		return "雨一時くもり"
+	case RainySnowy:
+		return "雨時々雪"
+	case RainySnowyTemp:
+		return "雨一時雪"
+	case RainyAfterSunny:
+		return "雨のち晴れ"
+	case RainyAfterCloudy:
+		return "雨のちくもり"
+	case SnowyRainy2:
+		return "雨のち雪"
+	case Snow:
+		return "雪"
+	case SnowySunny2:
+		return "雪時々晴れ"
+	case SnowySometimes:
+		return "雪一時晴れ"
+	case SnowyCloudy2:
+		return "雪時々くもり"
+	case SnowyCloudyTemp:
+		return "雪一時くもり"
+	case SnowyRainy:
+		return "雪時々雨"
+	case SnowyRainyTemp:
+		return "雪一時雨"
+	case SnowyAfterSunny:
+		return "雪のち晴れ"
+	case RainySnowy3:
+		return "雪のち雨"
+	case SnowyAfterCloudy:
+		return "雪のちくもり"
+	default:
+		return fmt.Sprintf("不明な天気(%s)", string(w))
+	}
+}
