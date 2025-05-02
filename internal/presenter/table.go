@@ -6,7 +6,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 	"github.com/eraiza0816/zu2l/internal/models"
 
@@ -52,27 +51,16 @@ func (p *TablePresenter) PresentPainStatus(data models.GetPainStatusResponse) er
 	table := p.newTable()
 	table.SetHeader([]string{fmt.Sprintf("%s\n%s", titleA, titleB)})
 
-	sicknessEmojis := []string{"😃", "😐", "😞", "🤯"}
 	sicknessLabels := []string{"普通", "少し痛い", "痛い", "かなり痛い"}
 	rates := []float64{status.RateNormal, status.RateLittle, status.RatePainful, status.RateBad}
 
-	for i, emoji := range sicknessEmojis {
+	for i, label := range sicknessLabels {
 		rate := rates[i]
-		repeatCount := 0
-		if rate >= 0 {
-			// 絵文字の繰り返し回数を割合に基づいて単純にスケーリング (rate / 2)
-			repeatCount = int(rate / 2)
-		}
-		emojiRepeat := strings.Repeat(emoji, repeatCount)
-		table.Append([]string{fmt.Sprintf("%s %.0f%%", emojiRepeat, rate)})
+
+		table.Append([]string{fmt.Sprintf("%s: %.0f%%", label, rate)})
 	}
 
-	var footerParts []string
-	for i, emoji := range sicknessEmojis {
-		footerParts = append(footerParts, fmt.Sprintf("%s･･･%s", emoji, sicknessLabels[i]))
-	}
-	footerText := fmt.Sprintf("[%s]", strings.Join(footerParts, ", "))
-	table.SetFooter([]string{footerText}) // 凡例のために SetFooter を使用
+	// フッターの凡例表示は削除済み
 
 	table.Render()
 	return nil
