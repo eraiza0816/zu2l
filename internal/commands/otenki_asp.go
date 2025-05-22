@@ -16,6 +16,11 @@ func RunOtenkiAsp(client *api.Client, pres presenter.Presenter, cmd *cobra.Comma
 	cityArg := args[0]
 	nFlag, _ := cmd.Flags().GetIntSlice("n")
 
+	// 「東京」が指定された場合のデフォルト処理
+	if cityArg == "東京" {
+		cityArg = "13101" // 千代田区のコードに置き換える
+	}
+
 	var cityCode string
 	var cityName string
 	var found bool
