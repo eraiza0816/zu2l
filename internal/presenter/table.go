@@ -12,9 +12,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-// TablePresenter は Presenter インターフェースを実装し、データをテーブル形式で出力します。
 type TablePresenter struct {
-	Writer io.Writer // 出力先 (nil の場合は os.Stdout)
+	Writer io.Writer
 }
 
 func (p *TablePresenter) ensureWriter() io.Writer {
@@ -24,32 +23,16 @@ func (p *TablePresenter) ensureWriter() io.Writer {
 	return p.Writer
 }
 
-// newTable は新しい tablewriter.Table インスタンスを作成し、設定します。
 func (p *TablePresenter) newTable() *tablewriter.Table {
 	writer := p.ensureWriter()
 	table := tablewriter.NewWriter(writer)
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.SetBorder(false)
-	table.SetTablePadding("\t")
-	table.SetNoWhiteSpace(true)
 	return table
 }
 
-// PresentPainStatus は痛み予報ステータスをテーブル形式で表示します。
 func (p *TablePresenter) PresentPainStatus(data models.GetPainStatusResponse) error {
 	status := data.PainnoterateStatus
-	titleA := fmt.Sprintf("今のみんなの体調は? <%s>", status.AreaName)
-	titleB := fmt.Sprintf("(集計時間: %s時-%s時台)", status.TimeStart, status.TimeEnd)
 
 	table := p.newTable()
-	table.SetHeader([]string{fmt.Sprintf("%s\n%s", titleA, titleB)})
 
 	sicknessLabels := []string{"普通", "少し痛い", "痛い", "かなり痛い"}
 	rates := []float64{status.RateNormal, status.RateLittle, status.RatePainful, status.RateBad}
@@ -60,21 +43,16 @@ func (p *TablePresenter) PresentPainStatus(data models.GetPainStatusResponse) er
 		table.Append([]string{fmt.Sprintf("%s: %.0f%%", label, rate)})
 	}
 
-	// フッターの凡例表示は削除済み
-
 	table.Render()
 	return nil
 }
 
-// PresentWeatherPoint は地点検索結果をテーブル形式で表示します。
 func (p *TablePresenter) PresentWeatherPoint(data models.GetWeatherPointResponse, kata bool, keyword string) error {
 	table := p.newTable()
 	headers := []string{"地域コード", "地域名"}
 	if kata {
 		headers = append(headers, "地域カナ")
 	}
-	table.SetHeader(headers)
-	table.SetCaption(true, fmt.Sprintf("「%s」の検索結果", keyword))
 
 	if len(data.Result.Root) == 0 {
 		fmt.Fprintf(p.ensureWriter(), "「%s」に一致する地域が見つかりませんでした。\n", keyword)
@@ -100,10 +78,9 @@ func (p *TablePresenter) renderWeatherStatusSubTable(
 	startHour int,                        // このセグメントの開始時間 (0 または 12)
 	prevPressure float64,                 // 前のセグメントの最後の気圧 (矢印表示用)
 	title string,                         // テーブルのタイトル (最初のセグメントのみ)
-) float64 { // このセグメントの最後の気圧を返す
+) float64 {
 	table := p.newTable()
 	if title != "" {
-		table.SetCaption(true, title)
 	}
 
 	var headers []string
@@ -117,7 +94,6 @@ func (p *TablePresenter) renderWeatherStatusSubTable(
 	for i := 0; i < numHours; i++ {
 		headers = append(headers, strconv.Itoa(startHour+i))
 	}
-	table.SetHeader(headers)
 
 	weathers := make([]string, numHours)
 	temps := make([]string, numHours)
@@ -152,13 +128,12 @@ func (p *TablePresenter) renderWeatherStatusSubTable(
 
 		pressureFloat, err := strconv.ParseFloat(byTime.Pressure, 64)
 		if err != nil {
-			pressureFloat = 0 // 変換エラー時は 0 とする
+			pressureFloat = 0
 			fmt.Fprintf(os.Stderr, "警告: 気圧 '%s' の数値変換に失敗しました: %v\n", byTime.Pressure, err)
 		}
 
-		// 気圧の変化を示す矢印
 		var arrow string
-		if (lastPressure == 0 && i == 0 && startHour == 0) || err != nil { // 初回 or 変換エラー
+		if (lastPressure == 0 && i == 0 && startHour == 0) || err != nil {
 			arrow = "→"
 		} else if pressureFloat > lastPressure {
 			arrow = "↗"
@@ -220,18 +195,13 @@ func (p *TablePresenter) PresentWeatherStatus(data models.GetWeatherStatusRespon
 	return nil
 }
 
-// PresentOtenkiASP は Otenki ASP の気象情報を元の複数列形式で表示します。
-// ユーザーの理想的なフォーマットに基づいて手動でヘッダー行を出力します。
 func (p *TablePresenter) PresentOtenkiASP(data models.GetOtenkiASPResponse, targetDates []time.Time, cityName, cityCode string) error {
 	table := p.newTable()
-	table.SetCaption(true, fmt.Sprintf("<%s|%s>の天気情報", cityName, cityCode))
 
 	if len(data.Elements) == 0 {
 		fmt.Fprintf(p.ensureWriter(), "表示する天気情報要素がありません。\n")
 		return nil
 	}
-
-	// sort.Slice(data.Elements, func(i, j int) bool { ... }) // 要素ソートはオプション
 
 	sort.Slice(targetDates, func(i, j int) bool {
 		return targetDates[i].Before(targetDates[j])
@@ -251,9 +221,8 @@ func (p *TablePresenter) PresentOtenkiASP(data models.GetOtenkiASPResponse, targ
 
 		for _, element := range data.Elements {
 			value, ok := element.Records[targetDate]
-			valueStr := "-" // Default value if missing
+			valueStr := "-"
 			if ok {
-				// パーサーが正しい型 (string または float64) を提供することを前提としたフォーマットロジック
 				switch v := value.(type) {
 				case string:
 					if element.ContentID == "day_tenki" {
@@ -303,5 +272,4 @@ func min(a, b int) int {
 }
 
 
-// コンパイル時チェック: TablePresenter が Presenter インターフェースを実装していることを保証します。
 var _ Presenter = (*TablePresenter)(nil)
