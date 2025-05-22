@@ -45,3 +45,9 @@ func (adt APIDateTime) MarshalJSON() ([]byte, error) {
 	}
 	return []byte(`"` + adt.Time.Format(apiDateTimeLayout) + `"`), nil
 }
+
+// NewString は文字列へのポインタを返すヘルパー関数です。
+// JSONのオプショナルな文字列フィールドなどで役立ちます。
+func NewString(s string) *string {
+	return &s
+}
